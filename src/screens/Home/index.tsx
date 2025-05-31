@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  ListRenderItem,
   RefreshControl,
   StyleSheet,
   Text,
@@ -17,139 +18,155 @@ import { ArticleType } from "../../types/news";
 import { RootStackParamList } from "../../types/navigation";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CategoryList } from "../../components/CategoryList";
+import { categories } from "../../constants/categories";
+import { useFavorites } from "../../contexts/FavoriteContext";
+import { Searchbar } from "react-native-paper";
+import { CardNewsItem } from "../../components";
+import {} from "react-native-screens";
 
-type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+type HomeScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  "Home"
+>;
 
 const Home: FC = () => {
   const navigation = useNavigation<HomeScreenNavigationProp>();
+  const { addFavorite, isFavorite, removeFavorite } = useFavorites();
+
   const [news, setNews] = useState<ArticleType[]>([]);
-  const [searchQuery, setSearchQuery] = useState("brasil");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [hasMorePages, setHasMorePages] = useState(true);
-  const PAGE_SIZE = 20; // Reduzindo para 20 itens por página
+  const PAGE_SIZE = 20;
 
-  const loadNews = useCallback(async (refresh = false) => {
-    if (loading || (!refresh && !hasMorePages)) return;
+  const getSearchQuery = useCallback(() => {
+    const category = categories.find((c) => c.id === selectedCategory);
+    if (!category) return searchQuery;
 
-    try {
-      setLoading(true);
-      setError(null);
-      const today = new Date();
-      // Pegando notícias dos últimos 7 dias para ter mais resultados
-      const fromDate = format(new Date(today.setDate(today.getDate() - 7)), "yyyy-MM-dd");
-
-      const response = await getNews(
-        searchQuery,
-        fromDate,
-        "publishedAt",
-        refresh ? 1 : page,
-        PAGE_SIZE
-      );
-
-      const totalPages = Math.ceil(response.totalResults / PAGE_SIZE);
-      setHasMorePages(page < Math.min(5, totalPages)); // Limitando a 5 páginas (100 resultados)
-      
-      if (refresh) {
-        setNews(response.articles);
-        setPage(1);
-      } else {
-        setNews((prev) => [...prev, ...response.articles]);
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Erro ao carregar notícias"
-      );
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
+    if (searchQuery && category.id !== "all") {
+      return `${category.query} ${searchQuery}`;
     }
-  }, [searchQuery, page, loading]);
+
+    return category.id === "all" ? searchQuery || "brasil" : category.query;
+  }, [selectedCategory, searchQuery]);
+
+  const loadNews = useCallback(
+    async (refresh = false) => {
+      if (loading || (!refresh && !hasMorePages)) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+        const today = new Date();
+        const fromDate = format(
+          new Date(today.setDate(today.getDate() - 7)),
+          "yyyy-MM-dd"
+        );
+        console.log(`Loading news from ${fromDate} to ${new Date()}...`);
+        const currentQuery = getSearchQuery();
+
+        const response = await getNews(
+          currentQuery,
+          fromDate,
+          "publishedAt",
+          refresh ? 1 : page,
+          PAGE_SIZE
+        );
+
+        const totalPages = Math.ceil(response.totalResults / PAGE_SIZE);
+        setHasMorePages(page < Math.min(5, totalPages));
+
+        if (refresh) {
+          setNews(response.articles);
+          setPage(2); // Preparando para a próxima página
+        } else {
+          setNews((prev) => [...prev, ...response.articles]);
+          setPage(page + 1);
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Erro ao carregar notícias"
+        );
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [searchQuery, page, loading, selectedCategory]
+  );
 
   useEffect(() => {
     loadNews(true);
-  }, [searchQuery]);
+  }, [searchQuery, selectedCategory]);
 
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     loadNews(true);
   }, [loadNews]);
 
-  const renderNewsItem = ({ item }: { item: ArticleType }) => (
-    <TouchableOpacity
-      style={styles.newsItem}
-      onPress={() => navigation.navigate("Details", { article: item })}
-    >
-      {item.urlToImage && (
-        <Image
-          source={{ uri: item.urlToImage }}
-          style={styles.newsImage}
-          resizeMode="cover"
-        />
-      )}
-      <View style={styles.newsContent}>
-        <Text style={styles.newsTitle} numberOfLines={2}>
-          {item.title}
-        </Text>
-        <Text style={styles.newsSource}>
-          {item.source.name} •{" "}
-          {format(
-            new Date(item.publishedAt),
-            "dd 'de' MMMM 'de' yyyy",
-            { locale: ptBR }
-          )}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const handleLoadMore = () => {
-    if (!loading) {
-      setPage((prev) => prev + 1);
-      loadNews();
-    }
+  const handleCategorySelect = (categoryId: string) => {
+    setSelectedCategory(categoryId);
+    setPage(1);
+    setHasMorePages(true);
   };
+
+  const renderNewsItem: ListRenderItem<ArticleType> = ({ item, index }) => (
+    <CardNewsItem
+      key={`index-${index}-${item.url}`}
+      article={item}
+      onPress={() => navigation.navigate("Details", { article: item })}
+      isFavorite={isFavorite(item)}
+      onFavoriteToggle={() => {
+        if (isFavorite(item)) {
+          removeFavorite(item.url);
+        } else {
+          addFavorite(item);
+        }
+      }}
+    />
+  );
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Buscar notícias..."
-          value={searchQuery}
-          onChangeText={(text) => setSearchQuery(text)}
-        />
-      </View>
+      <Searchbar
+        mode="view"
+        style={styles.searchInput}
+        placeholder="Pesquisar notícias..."
+        value={searchQuery}
+        onChangeText={(text) => {
+          setSearchQuery(text);
+          setPage(1);
+          setHasMorePages(true);
+        }}
+      />
+
+      <CategoryList
+        selectedCategory={selectedCategory}
+        onSelectCategory={handleCategorySelect}
+      />
 
       {error ? (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => loadNews(true)}
-          >
-            <Text style={styles.retryText}>Tentar novamente</Text>
-          </TouchableOpacity>
         </View>
       ) : (
         <FlatList
           data={news}
           renderItem={renderNewsItem}
-          keyExtractor={(item, index) => `${item.url}-${index}`}
-          onEndReached={handleLoadMore}
-          onEndReachedThreshold={0.5}
+          keyExtractor={(item) => item.url}
+          onEndReached={() => hasMorePages && loadNews()}
+          onEndReachedThreshold={0.3}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
           }
-          ListFooterComponent={
-            loading ? (
-              <ActivityIndicator
-                size="large"
-                color="#0000ff"
-                style={styles.loader}
-              />
+          ListFooterComponent={() =>
+            loading && !refreshing ? (
+              <ActivityIndicator style={styles.loader} size="large" />
             ) : null
           }
         />
@@ -161,19 +178,10 @@ const Home: FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  searchContainer: {
-    padding: 10,
     backgroundColor: "#fff",
-    elevation: 2,
   },
   searchInput: {
-    height: 40,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    fontSize: 16,
+    backgroundColor: "transparent",
   },
   newsItem: {
     backgroundColor: "#fff",
@@ -200,7 +208,7 @@ const styles = StyleSheet.create({
     color: "#666",
   },
   loader: {
-    marginVertical: 20,
+    marginVertical: 16,
   },
   errorContainer: {
     flex: 1,
@@ -209,19 +217,8 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   errorText: {
-    fontSize: 16,
-    color: "#ff0000",
+    color: "red",
     textAlign: "center",
-    marginBottom: 10,
-  },
-  retryButton: {
-    backgroundColor: "#0000ff",
-    padding: 10,
-    borderRadius: 5,
-  },
-  retryText: {
-    color: "#fff",
-    fontSize: 16,
   },
 });
 

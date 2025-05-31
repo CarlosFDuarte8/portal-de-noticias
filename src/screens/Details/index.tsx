@@ -37,13 +37,15 @@ const Details: FC = () => {
 
   return (
     <ScrollView style={styles.container}>
-      {article.urlToImage && (
-        <Image
-          source={{ uri: article.urlToImage }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-      )}
+      <View style={styles.imageContainer}>
+        {article.urlToImage && (
+          <Image
+            source={{ uri: article.urlToImage }}
+            style={styles.image}
+            resizeMode="contain"
+          />
+        )}
+      </View>
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{article.title}</Text>
         <Text style={styles.metadata}>
@@ -75,43 +77,64 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
+  imageContainer: {
+    width: '100%',
+    height: 300,
+    backgroundColor: '#f5f5f5',
+    marginBottom: 16,
+  },
   image: {
     width: '100%',
-    height: 250,
+    height: '100%',
   },
   contentContainer: {
-    padding: 16,
+    padding: 20,
+    paddingTop: 0,
   },
   title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: 26,
+    fontWeight: '800',
+    marginBottom: 12,
+    color: '#1a1a1a',
+    lineHeight: 34,
   },
   metadata: {
     fontSize: 14,
     color: '#666',
-    marginBottom: 16,
+    marginBottom: 20,
+    fontStyle: 'italic',
   },
   description: {
-    fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 16,
+    fontSize: 18,
+    lineHeight: 28,
+    marginBottom: 20,
+    color: '#333',
+    fontWeight: '500',
   },
   articleContent: {
     fontSize: 16,
-    lineHeight: 24,
-    marginBottom: 24,
+    lineHeight: 26,
+    marginBottom: 30,
+    color: '#444',
   },
   linkButton: {
-    backgroundColor: '#0066cc',
+    backgroundColor: '#2962ff',
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   linkButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: '600',
   },
 });
 
