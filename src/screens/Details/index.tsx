@@ -1,140 +1,253 @@
-import { useRoute, useNavigation } from "@react-navigation/native";
-import { FC, useLayoutEffect } from "react";
+import { AntDesign, Feather, MaterialIcons } from "@expo/vector-icons";
 import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  Image,
-  TouchableOpacity,
-  Linking,
-  View,
-} from "react-native";
+  NavigationProp,
+  RouteProp,
+  useNavigation,
+  useRoute,
+} from "@react-navigation/native";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArticleType } from "../../types/news";
+import * as Haptics from "expo-haptics";
+import { LinearGradient } from "expo-linear-gradient";
+import { FC, useState } from "react";
+import {
+  Animated,
+  Image,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { Appbar } from "react-native-paper";
+import { useFavorites } from "../../contexts/FavoriteContext";
+import { RootStackParamList } from "../../types/navigation";
 
 const Details: FC = () => {
-  const route = useRoute();
-  const navigation = useNavigation();
-  const { article } = route.params as { article: ArticleType };
+  const { isFavorite, addFavorite, removeFavorite, favorites } = useFavorites();
+  const route = useRoute<RouteProp<RootStackParamList, "WebViewScreen">>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { article } = route.params;
+  const [scrollY] = useState(new Animated.Value(0));
 
-  useLayoutEffect(() => {
-    navigation.setOptions({
-      title: article.source.name,
-    });
-  }, [navigation, article]);
-
-  const handleOpenArticle = async () => {
+  const handleShare = async () => {
     try {
-      const canOpen = await Linking.canOpenURL(article.url);
-      if (canOpen) {
-        await Linking.openURL(article.url);
-      }
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await Share.share({
+        message: `${article.title}\n\nLeia mais: ${article.url}`,
+        url: article.url,
+        title: article.title,
+      });
     } catch (error) {
-      console.error('Erro ao abrir o link:', error);
+      console.error("Erro ao compartilhar:", error);
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.imageContainer}>
-        {article.urlToImage && (
-          <Image
-            source={{ uri: article.urlToImage }}
-            style={styles.image}
-            resizeMode="contain"
+    <View style={styles.container}>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.goBack()} />
+        <Appbar.Content title={article.source.name} />
+        <Appbar.Action icon="share" onPress={handleShare} />
+        <Appbar.Action
+          icon={(props) => (
+            <MaterialIcons
+              name={isFavorite(article) ? "favorite" : "favorite-outline"}
+              size={20}
+              color="#fff"
+              {...props}
+            />
+          )}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            if (isFavorite(article)) {
+              removeFavorite(article.url);
+            } else {
+              addFavorite(article);
+            }
+          }}
+        />
+      </Appbar.Header>
+      <Animated.ScrollView
+        style={styles.scrollView}
+        scrollEventThrottle={16}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+      >
+        <View style={styles.imageContainer}>
+          {article.urlToImage ? (
+            <Image
+              source={{ uri: article.urlToImage }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Feather name="image" size={48} color="#94a3b8" />
+            </View>
+          )}
+          <LinearGradient
+            colors={["rgba(0,0,0,0.7)", "transparent"]}
+            style={styles.imageGradient}
           />
-        )}
-      </View>
-      <View style={styles.contentContainer}>
-        <Text style={styles.title}>{article.title}</Text>
-        <Text style={styles.metadata}>
-          {article.author ? `Por ${article.author} • ` : ''}
-          {format(new Date(article.publishedAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-        </Text>
-        
-        {article.description && (
-          <Text style={styles.description}>{article.description}</Text>
-        )}
-        
-        {article.content && (
-          <Text style={styles.articleContent}>{article.content}</Text>
-        )}
+        </View>
 
-        <TouchableOpacity
-          style={styles.linkButton}
-          onPress={handleOpenArticle}
-        >
-          <Text style={styles.linkButtonText}>Ler artigo completo no site original</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+        <View style={styles.contentContainer}>
+          <View style={styles.sourceContainer}>
+            <Text style={styles.sourceText}>{article.source.name}</Text>
+            <View style={styles.divider} />
+            <Text style={styles.dateText}>
+              {format(new Date(article.publishedAt), "dd MMM yyyy • HH:mm", {
+                locale: ptBR,
+              })}
+            </Text>
+          </View>
+
+          <Text style={styles.title}>{article.title}</Text>
+
+          {article.author && (
+            <View style={styles.authorContainer}>
+              <Feather name="user" size={16} color="#64748b" />
+              <Text style={styles.authorText}>{article.author}</Text>
+            </View>
+          )}
+
+          {article.description && (
+            <Text style={styles.description}>{article.description}</Text>
+          )}
+
+          {article.content && (
+            <Text style={styles.content}>
+              {article.content.replace(/\[\+\d+ chars\]/g, "")}
+            </Text>
+          )}
+
+          <TouchableOpacity
+            style={styles.readMoreButton}
+            onPress={() => navigation.navigate("WebViewScreen", { article })}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.readMoreText}>Ler matéria completa</Text>
+            <AntDesign name="arrowright" size={18} color="#3b82f6" />
+          </TouchableOpacity>
+        </View>
+      </Animated.ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  headerBackground: {
+    flex: 1,
+    borderBottomWidth: 1,
+  },
+  headerRightContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   imageContainer: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#f5f5f5',
-    marginBottom: 16,
+    width: "100%",
+    height: 350,
+    position: "relative",
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
+  },
+  imagePlaceholder: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 100,
   },
   contentContainer: {
-    padding: 20,
-    paddingTop: 0,
+    padding: 24,
+    paddingTop: 16,
+    marginTop: -20,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+  },
+  sourceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  sourceText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#3b82f6",
+  },
+  divider: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#cbd5e1",
+    marginHorizontal: 8,
+  },
+  dateText: {
+    fontSize: 14,
+    color: "#64748b",
   },
   title: {
-    fontSize: 26,
-    fontWeight: '800',
-    marginBottom: 12,
-    color: '#1a1a1a',
-    lineHeight: 34,
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#0f172a",
+    lineHeight: 32,
+    marginBottom: 16,
   },
-  metadata: {
+  authorContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  authorText: {
     fontSize: 14,
-    color: '#666',
-    marginBottom: 20,
-    fontStyle: 'italic',
+    color: "#64748b",
+    marginLeft: 8,
   },
   description: {
     fontSize: 18,
     lineHeight: 28,
-    marginBottom: 20,
-    color: '#333',
-    fontWeight: '500',
+    color: "#334155",
+    marginBottom: 24,
+    fontWeight: "500",
   },
-  articleContent: {
+  content: {
     fontSize: 16,
     lineHeight: 26,
-    marginBottom: 30,
-    color: '#444',
+    color: "#475569",
+    marginBottom: 32,
   },
-  linkButton: {
-    backgroundColor: '#2962ff',
-    padding: 16,
+  readMoreButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
     borderRadius: 12,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  linkButtonText: {
-    color: '#fff',
+  readMoreText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
+    color: "#3b82f6",
+    marginRight: 8,
   },
 });
 

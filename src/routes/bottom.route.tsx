@@ -24,6 +24,9 @@ const BottomTabNavigator: FC = () => {
           backgroundColor: "#fff",
           borderTopWidth: 0,
         },
+        // tabBarVariant: 'material',
+        // tabBarPosition: "left",
+        // tabBarLabelPosition: 'below-icon',
       }}
     >
       <Tab.Screen

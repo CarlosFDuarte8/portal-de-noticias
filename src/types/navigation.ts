@@ -6,5 +6,8 @@ export type RootStackParamList = {
   Details: {
     article: ArticleType;
   };
+  WebViewScreen: {
+    article: ArticleType;
+  };
   Favorites: undefined;
 };

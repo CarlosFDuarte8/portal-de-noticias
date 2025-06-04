@@ -1,5 +1,5 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Home, Details } from "../screens";
+import { Home, Details, WebViewScreen } from "../screens";
 import { RootStackParamList } from "../types/navigation";
 import BottomTabNavigator from "./bottom.route";
 
@@ -10,7 +10,10 @@ export default function StackRoutes() {
     <Stack.Navigator
       id={undefined}
       initialRouteName="BottomTabNavigator"
-      screenOptions={{ headerShown: true, orientation: "portrait" }}
+      screenOptions={{
+        headerShown: true,
+        orientation: "portrait",
+      }}
     >
       <Stack.Screen
         name="BottomTabNavigator"
@@ -20,7 +23,14 @@ export default function StackRoutes() {
       <Stack.Screen
         name="Details"
         component={Details}
-        options={{ title: "Detalhes" }}
+        options={{ title: "Detalhes", headerShown: false, headerTransparent: true }} 
+
+      />
+      <Stack.Screen
+        name="WebViewScreen"
+        component={WebViewScreen}
+        options={{ title: "WebViewScreen", headerShown: false, headerTransparent: true }} 
+
       />
     </Stack.Navigator>
   );
