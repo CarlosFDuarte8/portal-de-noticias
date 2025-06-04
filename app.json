@@ -5,6 +5,11 @@
     "version": "1.0.0",
     "plugins": [
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "bbdd2012-6913-4922-955b-886d2c5034e3"
+      }
+    }
   }
 }

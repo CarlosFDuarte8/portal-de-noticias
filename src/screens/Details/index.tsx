@@ -19,7 +19,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Appbar } from "react-native-paper";
+import { Appbar, useTheme } from "react-native-paper";
 import { useFavorites } from "../../contexts/FavoriteContext";
 import { RootStackParamList } from "../../types/navigation";
 
@@ -27,6 +27,7 @@ const Details: FC = () => {
   const { isFavorite, addFavorite, removeFavorite, favorites } = useFavorites();
   const route = useRoute<RouteProp<RootStackParamList, "WebViewScreen">>();
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { colors } = useTheme();
   const { article } = route.params;
   const [scrollY] = useState(new Animated.Value(0));
 
@@ -94,7 +95,12 @@ const Details: FC = () => {
           />
         </View>
 
-        <View style={styles.contentContainer}>
+        <View
+          style={[
+            styles.contentContainer,
+            { backgroundColor: colors.background },
+          ]}
+        >
           <View style={styles.sourceContainer}>
             <Text style={styles.sourceText}>{article.source.name}</Text>
             <View style={styles.divider} />

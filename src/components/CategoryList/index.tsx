@@ -1,32 +1,35 @@
-import React from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { Chip } from 'react-native-paper';
-import { categories } from '../../constants/categories';
+import React from "react";
+import { ScrollView, StyleSheet, TouchableOpacity } from "react-native";
+import { Chip } from "react-native-paper";
+import { categories } from "../../constants/categories";
+import { stylesCategory } from "./styles";
 
 interface CategoryListProps {
   selectedCategory: string;
   onSelectCategory: (category: string) => void;
 }
 
-export const CategoryList = ({ selectedCategory, onSelectCategory }: CategoryListProps) => {
+export const CategoryList = ({
+  selectedCategory,
+  onSelectCategory,
+}: CategoryListProps) => {
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.container}
+      contentContainerStyle={stylesCategory.container}
     >
       {categories.map((category) => (
         <TouchableOpacity
           key={category.id}
           onPress={() => onSelectCategory(category.id)}
-          style={styles.chipContainer}
+          style={stylesCategory.chipContainer}
         >
           <Chip
-          
             selected={selectedCategory === category.id}
             onPress={() => onSelectCategory(category.id)}
-            style={styles.chip}
-            mode={selectedCategory === category.id ? 'flat' : 'outlined'}
+            style={stylesCategory.chip}
+            mode={selectedCategory === category.id ? "flat" : "outlined"}
           >
             {category.label}
           </Chip>
@@ -36,15 +39,4 @@ export const CategoryList = ({ selectedCategory, onSelectCategory }: CategoryLis
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  chipContainer: {
-    marginRight: 8,
-  },
-  chip: {
-    height: 32,
-  },
-});
+
