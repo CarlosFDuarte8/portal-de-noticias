@@ -13,7 +13,7 @@ const checkConnectivity = async () => {
 
 export const getNews = async (
   query: string = "tesla",
-  from: string = "2025-04-28",
+  from?: string,
   sortBy: string = "publishedAt",
   page: number = 1,
   pageSize: number = 10
@@ -33,9 +33,12 @@ export const getNews = async (
 
     // Se estiver online, tenta buscar dados novos da API
     try {
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const fromDate = sevenDaysAgo.toISOString().split('T')[0];
+      // Usa o parâmetro 'from' se fornecido, senão calcula 7 dias atrás
+      const fromDate = from || (() => {
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        return sevenDaysAgo.toISOString().split('T')[0];
+      })();
 
       const response = await api.get<NewsResponse, NewsResponse>("/everything", {
         params: {
