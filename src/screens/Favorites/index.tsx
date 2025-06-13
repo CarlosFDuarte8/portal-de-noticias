@@ -1,4 +1,4 @@
-import { FC, useEffect, useState, useRef } from "react";
+import { FC, useEffect, useState, useRef, useCallback, useMemo } from "react";
 import {
   Text,
   View,
@@ -31,10 +31,12 @@ const Favorites: FC = () => {
   const searchAnim = useRef(new Animated.Value(0)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
 
-  const filteredFavorites = favorites.filter(
-    (fav) =>
-      fav.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      fav.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredFavorites = useMemo(() => 
+    favorites.filter(
+      (fav) =>
+        fav.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        fav.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    ), [favorites, searchQuery]
   );
 
   useEffect(() => {
