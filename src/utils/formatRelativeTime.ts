@@ -1,12 +1,17 @@
 export const formatRelativeTime = (dateString: string) => {
   const published = new Date(dateString);
+
+  if (isNaN(published.getTime())) {
+    return "Data inválida";
+  }
+
   const now = new Date();
   const diffInMilliseconds = now.getTime() - published.getTime();
   const diffInMinutes = Math.floor(diffInMilliseconds / (1000 * 60));
   const diffInHours = Math.floor(diffInMinutes / 60);
   const diffInDays = Math.floor(diffInHours / 24);
 
-  if (diffInDays > 7) {
+  if (diffInDays > 7 || diffInMilliseconds < 0) {
     return published.toLocaleDateString("pt-BR", {
       day: "numeric",
       month: "short",
