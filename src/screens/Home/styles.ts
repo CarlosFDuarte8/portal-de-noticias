@@ -3,10 +3,9 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // paddingHorizontal: 8,
   },
   header: {
-    paddingTop: 8,
+    paddingHorizontal: 8,
     zIndex: 1,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
@@ -14,21 +13,17 @@ export const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 8,
-    // height: 48,
-    // shadowColor: "#000",
-    // shadowOffset: { width: 0, height: 1 },
-    // shadowOpacity: 0.05,
-    // shadowRadius: 3,
+    borderRadius: 8,
   },
   searchInputText: {
     color: "#0f172a",
-    // fontSize: 16,
   },
   listContent: {
-    paddingTop: 16,
+    paddingTop: 8,
     paddingBottom: 24,
+  },
+  listContainer: {
+    flex: 1,
   },
   loader: {
     marginVertical: 24,
@@ -69,5 +64,37 @@ export const styles = StyleSheet.create({
     fontSize: 16,
     marginTop: 16,
     textAlign: "center",
+  },
+  scrollToTopButton: {
+    position: "absolute",
+    top: 70,
+    left: 0,
+    right: 0,
+    height: 50,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 5,
+  },
+  scrollToTopButtonInner: {
+    backgroundColor: "#3b82f6",
+    width: 150,
+    height: 30,
+    borderRadius: 8,
+    justifyContent: "space-evenly",
+    alignItems: "center",
+    flexDirection: "row",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 6,
+  },
+  scrollToTopIcon: {
+    color: "#fff",
+  },
+  scrollToTopText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
   },
 });

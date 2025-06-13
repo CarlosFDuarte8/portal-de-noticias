@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useRef, useCallback, memo } from "react";
 import { ArticleType } from "../../types/news";
 import {
   Image,
@@ -29,26 +29,26 @@ const CardNewsItem: FC<CardNewsItemProps> = ({
   isFavorite,
   onFavoriteToggle,
 }) => {
-  const scaleValue = new Animated.Value(1);
-  const opacityValue = new Animated.Value(1);
+  const scaleValue = useRef(new Animated.Value(1)).current;
+  const opacityValue = useRef(new Animated.Value(1)).current;
 
-  const handlePressIn = () => {
+  const handlePressIn = useCallback(() => {
     Animated.spring(scaleValue, {
       toValue: 0.98,
       useNativeDriver: true,
     }).start();
-  };
+  }, [scaleValue]);
 
-  const handlePressOut = () => {
+  const handlePressOut = useCallback(() => {
     Animated.spring(scaleValue, {
       toValue: 1,
       friction: 3,
       tension: 40,
       useNativeDriver: true,
     }).start();
-  };
+  }, [scaleValue]);
 
-  const handleFavoritePress = () => {
+  const handleFavoritePress = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onFavoriteToggle();
 
@@ -68,7 +68,7 @@ const CardNewsItem: FC<CardNewsItemProps> = ({
         }),
       ]).start();
     }
-  };
+  }, [scaleValue, isFavorite, onFavoriteToggle]);
 
   return (
     <Animated.View
@@ -151,4 +151,4 @@ const CardNewsItem: FC<CardNewsItemProps> = ({
   );
 };
 
-export default CardNewsItem;
+export default memo(CardNewsItem);

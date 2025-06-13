@@ -1,6 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { FC } from "react";
+import { FC, useCallback, useMemo } from "react";
 import {
   ActivityIndicator,
   Animated,
@@ -23,11 +23,13 @@ type HomeViewProp = ReturnType<typeof useHomeModel>;
 const HomeView: FC<HomeViewProp> = ({
   addFavorite,
   error,
+  flatListRef,
   handleCategorySelect,
   handleSearchSubmit,
   hasMorePages,
   headerTranslateY,
   isFavorite,
+  isScrolledDown,
   loadNews,
   loading,
   navigation,
@@ -35,31 +37,73 @@ const HomeView: FC<HomeViewProp> = ({
   onRefresh,
   refreshing,
   removeFavorite,
-  searchQuery,
+  scrollToTop,
   scrollY,
+  searchQuery,
   selectedCategory,
   setSearchQuery,
 }) => {
-  const renderNewsItem: ListRenderItem<ArticleType> = ({ item, index }) => (
-    <CardNewsItem
-      key={`index-${index}-${item.url}`}
-      article={item}
-      onPress={() => navigation.navigate("Details", { article: item })}
-      isFavorite={isFavorite(item)}
-      onFavoriteToggle={() => {
+  const renderNewsItem: ListRenderItem<ArticleType> = useCallback(
+    ({ item, index }) => {
+      const handlePress = () =>
+        navigation.navigate("Details", { article: item });
+      const handleFavoriteToggle = () => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         if (isFavorite(item)) {
           removeFavorite(item.url);
         } else {
           addFavorite(item);
         }
-      }}
-    />
+      };
+
+      return (
+        <CardNewsItem
+          article={item}
+          onPress={handlePress}
+          isFavorite={isFavorite(item)}
+          onFavoriteToggle={handleFavoriteToggle}
+        />
+      );
+    },
+    [navigation, isFavorite, removeFavorite, addFavorite]
   );
 
-  const AnimatedFlatList = Animated.createAnimatedComponent(
-    FlatList<ArticleType>
+  const AnimatedFlatList = useMemo(
+    () => Animated.createAnimatedComponent(FlatList<ArticleType>),
+    []
   );
+
+  const refreshControl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        tintColor="#3b82f6"
+      />
+    ),
+    [refreshing, onRefresh]
+  );
+
+  const listEmptyComponent = useMemo(
+    () =>
+      !loading ? (
+        <View style={styles.emptyContainer}>
+          <MaterialIcons name="search-off" size={48} color="#94a3b8" />
+          <Text style={styles.emptyText}>Nenhuma notícia encontrada</Text>
+        </View>
+      ) : null,
+    [loading]
+  );
+
+  const listFooterComponent = useMemo(
+    () =>
+      loading && !refreshing ? (
+        <ActivityIndicator style={styles.loader} size="large" color="#3b82f6" />
+      ) : null,
+    [loading, refreshing]
+  );
+
+  const handleRetry = useCallback(() => loadNews(), [loadNews]);
 
   return (
     <View style={styles.container}>
@@ -78,8 +122,6 @@ const HomeView: FC<HomeViewProp> = ({
           style={styles.searchInput}
           iconColor="#64748b"
           inputStyle={styles.searchInputText}
-          // elevation={1}
-          
         />
 
         <CategoryList
@@ -88,55 +130,77 @@ const HomeView: FC<HomeViewProp> = ({
         />
       </Animated.View>
 
+      {/* Botão Scroll to Top - Aparece com fade do centro */}
+      <Animated.View
+        style={[
+          styles.scrollToTopButton,
+          {
+            opacity: isScrolledDown,
+            transform: [
+              {
+                scale: isScrolledDown.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [0.3, 1],
+                  extrapolate: "clamp",
+                }),
+              },
+            ],
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.scrollToTopButtonInner}
+          onPress={scrollToTop}
+          activeOpacity={0.8}
+        >
+          <View />
+          <Text style={styles.scrollToTopText}>Voltar ao início</Text>
+          <MaterialIcons
+            name="keyboard-arrow-up"
+            size={18}
+            style={styles.scrollToTopIcon}
+          />
+        </TouchableOpacity>
+      </Animated.View>
+
       {error ? (
-        <View style={styles.errorContainer}>
+        <Animated.View
+          style={[
+            styles.errorContainer,
+            { transform: [{ translateY: headerTranslateY }] },
+          ]}
+        >
           <MaterialIcons name="error-outline" size={48} color="#ef4444" />
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryButton}
-            onPress={() => loadNews(true)}
-          >
+          <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
             <Text style={styles.retryButtonText}>Tentar novamente</Text>
           </TouchableOpacity>
-        </View>
+        </Animated.View>
       ) : (
-        <AnimatedFlatList
-          data={news}
-          renderItem={renderNewsItem}
-          keyExtractor={(item) => item.url}
-          onEndReached={() => hasMorePages && loadNews()}
-          onEndReachedThreshold={0.3}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={onRefresh}
-              tintColor="#3b82f6"
-            />
-          }
-          ListEmptyComponent={
-            !loading ? (
-              <View style={styles.emptyContainer}>
-                <MaterialIcons name="search-off" size={48} color="#94a3b8" />
-                <Text style={styles.emptyText}>Nenhuma notícia encontrada</Text>
-              </View>
-            ) : null
-          }
-          ListFooterComponent={() =>
-            loading && !refreshing ? (
-              <ActivityIndicator
-                style={styles.loader}
-                size="large"
-                color="#3b82f6"
-              />
-            ) : null
-          }
-          contentContainerStyle={styles.listContent}
-          scrollEventThrottle={16}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { y: scrollY } } }],
-            { useNativeDriver: true }
-          )}
-        />
+        <Animated.View
+          style={[
+            styles.listContainer,
+            { transform: [{ translateY: headerTranslateY }] },
+          ]}
+        >
+          <AnimatedFlatList
+            ref={flatListRef}
+            data={news}
+            renderItem={renderNewsItem}
+            keyExtractor={(item, index) => `${item.url}-${index}`}
+            onEndReached={() => hasMorePages && loadNews()}
+            onEndReachedThreshold={0.3}
+            refreshControl={refreshControl}
+            ListEmptyComponent={listEmptyComponent}
+            ListFooterComponent={listFooterComponent}
+            contentContainerStyle={styles.listContent}
+            scrollEventThrottle={16}
+            onScroll={Animated.event(
+              [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+              { useNativeDriver: true }
+            )}
+          />
+        </Animated.View>
       )}
     </View>
   );

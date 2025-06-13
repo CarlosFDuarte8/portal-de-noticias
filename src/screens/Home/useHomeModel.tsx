@@ -2,7 +2,7 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { format } from "date-fns";
 import * as Haptics from "expo-haptics";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo, useRef } from "react";
 import { Animated } from "react-native";
 import { categories } from "../../constants/categories";
 import { useFavorites } from "../../contexts/FavoriteContext";
@@ -28,13 +28,17 @@ const useHomeModel = () => {
   const [page, setPage] = useState(1);
   const [hasMorePages, setHasMorePages] = useState(true);
   const [scrollY] = useState(new Animated.Value(0));
+  const loadNewsRef = useRef<(refresh?: boolean) => Promise<void>>();
+  const flatListRef = useRef<any>(null);
   const PAGE_SIZE = 20;
 
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, -50],
-    extrapolate: "clamp",
-  });
+  const headerTranslateY = useMemo(() => 
+    scrollY.interpolate({
+      inputRange: [0, 100],
+      outputRange: [0, -50],
+      extrapolate: "clamp",
+    }), [scrollY]
+  );
 
   const getSearchQuery = useCallback(() => {
     const category = categories.find((c) => c.id === selectedCategory);
@@ -70,14 +74,14 @@ const useHomeModel = () => {
         );
 
         const totalPages = Math.ceil(response.totalResults / PAGE_SIZE);
-        setHasMorePages(page < Math.min(5, totalPages));
+        setHasMorePages((refresh ? 2 : page + 1) < Math.min(5, totalPages));
 
         if (refresh) {
           setNews(response.articles);
           setPage(2);
         } else {
           setNews((prev) => [...prev, ...response.articles]);
-          setPage(page + 1);
+          setPage((prev) => prev + 1);
         }
       } catch (err) {
         setError(
@@ -88,8 +92,11 @@ const useHomeModel = () => {
         setRefreshing(false);
       }
     },
-    [searchQuery, page, loading, selectedCategory]
+    [getSearchQuery, page, loading, hasMorePages]
   );
+
+  // Store reference for external calls
+  loadNewsRef.current = loadNews;
 
   useEffect(() => {
     loadNews(true);
@@ -98,20 +105,39 @@ const useHomeModel = () => {
   const onRefresh = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setRefreshing(true);
-    loadNews(true);
-  }, [loadNews]);
+    loadNewsRef.current?.(true);
+  }, []);
 
-  const handleCategorySelect = (categoryId: string) => {
+  const handleCategorySelect = useCallback((categoryId: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedCategory(categoryId);
     setPage(1);
     setHasMorePages(true);
-  };
+  }, []);
 
-  const handleSearchSubmit = () => {
+  const handleSearchSubmit = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    loadNews(true);
-  };
+    loadNewsRef.current?.(true);
+  }, []);
+
+  const loadMoreNews = useCallback(() => {
+    if (hasMorePages) {
+      loadNewsRef.current?.(false);
+    }
+  }, [hasMorePages]);
+
+  const scrollToTop = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    flatListRef.current?.scrollToOffset({ animated: true, offset: 0 });
+  }, []);
+
+  const isScrolledDown = useMemo(() => 
+    scrollY.interpolate({
+      inputRange: [0, 150, 200], // Só aparece depois de rolar 150px
+      outputRange: [0, 0, 1],    // Mantém 0 até 150px, depois vai para 1
+      extrapolate: "clamp",
+    }), [scrollY]
+  );
 
   return {
     navigation,
@@ -125,7 +151,10 @@ const useHomeModel = () => {
     hasMorePages,
     scrollY,
     headerTranslateY,
-    loadNews,
+    isScrolledDown,
+    flatListRef,
+    scrollToTop,
+    loadNews: loadMoreNews,
     onRefresh,
     handleCategorySelect,
     handleSearchSubmit,
