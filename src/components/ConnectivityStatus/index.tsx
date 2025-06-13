@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNetInfo } from '../../hooks/useNetInfo';
 
-export const ConnectivityStatus = () => {
+export const ConnectivityStatus = memo(() => {
   const { isConnected } = useNetInfo();
 
   if (isConnected) return null;
@@ -12,7 +12,7 @@ export const ConnectivityStatus = () => {
       <Text style={styles.text}>Você está offline - Exibindo notícias em cache</Text>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
