@@ -44,6 +44,11 @@ export const FavoriteProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     } catch (error) {
       console.error("Erro ao carregar favoritos:", error);
+      Toast.show({
+        type: "error",
+        text1: "Erro nos Favoritos",
+        text2: "Não foi possível carregar seus favoritos.",
+      });
     }
   };
 
