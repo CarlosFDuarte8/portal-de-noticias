@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NewsResponse } from '../types/news';
+import Toast from 'react-native-toast-message';
 
 const STORAGE_KEY_PREFIX = '@portal-noticias:news';
 const LAST_UPDATE_KEY = '@portal-noticias:last-update';
@@ -45,7 +46,11 @@ export const saveNewsLocally = async (news: NewsResponse, query: string) => {
     await AsyncStorage.setItem(LAST_UPDATE_KEY, today);
   } catch (error) {
     console.error('Erro ao salvar notícias localmente:', error);
-    throw error;
+    Toast.show({
+      type: 'error',
+      text1: 'Erro no Cache',
+      text2: 'Não foi possível salvar as notícias localmente.',
+    });
   }
 };
 
@@ -76,7 +81,12 @@ export const getLocalNews = async (query: string): Promise<NewsResponse | null> 
     return null;
   } catch (error) {
     console.error('Erro ao recuperar notícias locais:', error);
-    throw error;
+    Toast.show({
+      type: 'error',
+      text1: 'Erro no Cache',
+      text2: 'Não foi possível carregar notícias do cache.',
+    });
+    return null;
   }
 };
 
