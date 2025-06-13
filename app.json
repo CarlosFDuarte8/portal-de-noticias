@@ -10,6 +10,13 @@
       "eas": {
         "projectId": "bbdd2012-6913-4922-955b-886d2c5034e3"
       }
+    },
+    "owner": "carlosduarte8",
+    "android": {
+      "package": "com.portaldenoticias"
+    },
+    "ios": {
+      "bundleIdentifier": "com.portaldenoticias"
     }
   }
 }
