@@ -1,4 +1,4 @@
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useMemo } from 'react';
 import { useNetInfo } from '../hooks/useNetInfo';
 
 interface ConnectivityContextData {
@@ -10,8 +10,10 @@ const ConnectivityContext = createContext<ConnectivityContextData>({} as Connect
 export const ConnectivityProvider = ({ children }: { children: ReactNode }) => {
   const { isConnected } = useNetInfo();
 
+  const contextValue = useMemo(() => ({ isConnected }), [isConnected]);
+
   return (
-    <ConnectivityContext.Provider value={{ isConnected }}>
+    <ConnectivityContext.Provider value={contextValue}>
       {children}
     </ConnectivityContext.Provider>
   );
