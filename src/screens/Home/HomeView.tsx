@@ -78,13 +78,8 @@ const HomeView: FC<HomeViewProp> = ({
           style={styles.searchInput}
           iconColor="#64748b"
           inputStyle={styles.searchInputText}
-          elevation={1}
-          theme={{
-            colors: {
-              primary: "#3b82f6",
-              background: "#f8fafc",
-            },
-          }}
+          // elevation={1}
+          
         />
 
         <CategoryList

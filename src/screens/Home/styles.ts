@@ -3,27 +3,28 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 8,
+    // paddingHorizontal: 8,
   },
   header: {
     paddingTop: 8,
     zIndex: 1,
     borderBottomWidth: 1,
     borderBottomColor: "#e2e8f0",
+    backgroundColor: "#fff",
   },
   searchInput: {
-    backgroundColor: "#f1f5f9",
+    backgroundColor: "#fff",
     borderRadius: 12,
     marginBottom: 8,
-    height: 48,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    // height: 48,
+    // shadowColor: "#000",
+    // shadowOffset: { width: 0, height: 1 },
+    // shadowOpacity: 0.05,
+    // shadowRadius: 3,
   },
   searchInputText: {
     color: "#0f172a",
-    fontSize: 16,
+    // fontSize: 16,
   },
   listContent: {
     paddingTop: 16,

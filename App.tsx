@@ -7,6 +7,7 @@ import { ConnectivityStatus } from "./src/components/ConnectivityStatus";
 import ProviderContexts from "./src/contexts/ProviderContexts";
 import StackRoutes from "./src/routes";
 import { light } from "./src/theme/light";
+import Toast from "react-native-toast-message";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           <StatusBar animated barStyle="default" />
           <ConnectivityStatus />
           <StackRoutes />
+          <Toast />
         </NavigationContainer>
       </PaperProvider>
     </ProviderContexts>

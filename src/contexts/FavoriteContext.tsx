@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
-import { ArticleType } from "../types/news";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useEffect, useState } from "react";
+import Toast from "react-native-toast-message";
+import { ArticleType } from "../types/news";
 
 const FAVORITES_STORAGE_KEY = "@portal-noticias:favorites";
 
@@ -60,6 +61,11 @@ export const FavoriteProvider: React.FC<{ children: React.ReactNode }> = ({
         FAVORITES_STORAGE_KEY,
         JSON.stringify(updatedFavorites)
       );
+      Toast.show({
+        text1: "Artigo adicionado aos favoritos!",
+        type: "success",
+        visibilityTime: 2000,
+      });
     }
   };
 
@@ -72,6 +78,11 @@ export const FavoriteProvider: React.FC<{ children: React.ReactNode }> = ({
       FAVORITES_STORAGE_KEY,
       JSON.stringify(updatedFavorites)
     );
+    Toast.show({
+      text1: "Artigo removido dos favoritos!",
+      type: "info",
+      visibilityTime: 2000,
+    });
   };
 
   const isFavorite = (article: ArticleType) => {
