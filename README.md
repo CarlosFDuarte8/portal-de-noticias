@@ -23,14 +23,16 @@ download: https://expo.dev/accounts/carlosduarte8/projects/portal-de-noticias/bu
 ### Configuração do Ambiente
 
 1. **Clone o repositório:**
+
    ```bash
    git clone https://github.com/CarlosFDuarte8/portal-de-noticias.git
    cd portal-de-noticias
    ```
 
 2. **Instale as dependências:**
+
    ```bash
-   npm install ou npx expo install
+   npm install
    ```
 
 3. **Configure o ambiente de desenvolvimento:**
@@ -40,16 +42,22 @@ download: https://expo.dev/accounts/carlosduarte8/projects/portal-de-noticias/bu
 ### Executando o Aplicativo
 
 #### Desenvolvimento com Expo Dev Client
-```bash
+
 # Iniciar o servidor de desenvolvimento
-npm start ou npx expo start
+
+```bash
+npm start
+```
+ou
 
 # somente para Android
-npm run android
 
+```
+npm run android
 ```
 
 #### Usando Expo Go (Alternativa Simplificada)
+
 1. Instale o [Expo Go](https://expo.dev/client) no seu dispositivo
 2. Execute `npm start`
 3. Escaneie o QR code com o Expo Go
@@ -61,6 +69,7 @@ npm run android
 **React Native + Expo**: Escolhido para desenvolvimento cross-platform eficiente, aproveitando o ecossistema do Expo para funcionalidades nativas.
 
 **Estrutura de Pastas Organizada**:
+
 ```
 src/
 ├── components/     # Componentes reutilizáveis
@@ -77,17 +86,20 @@ src/
 ### Gerenciamento de Estado
 
 **Context API**: Combinação para diferentes necessidades:
+
 - **Context API**: Para estados globais simples (conectividade, favoritos)
 
 ### Navegação
 
 **React Navigation v7**: Biblioteca padrão para navegação em React Native:
+
 - **Stack Navigator**: Navegação principal entre telas
 - **Bottom Tabs**: Navegação por abas (Home, Favoritos)
 
 ### Interface e Tema
 
 **React Native Paper**: Biblioteca de componentes Material Design:
+
 - Design system consistente
 - Suporte nativo a temas claro/escuro (implementado tema claro)
 - Componentes acessíveis
@@ -95,11 +107,13 @@ src/
 ### Conectividade e Dados
 
 **Estratégia Offline-First**:
+
 - **@react-native-community/netinfo**: Detecção de conectividade
 - **AsyncStorage**: Armazenamento local para cache de notícias
 - **Fallback automático**: Interface funciona mesmo sem conexão
 
 **API de Notícias**:
+
 - **NewsAPI**: Integração com serviço de notícias
 - **Axios**: Cliente HTTP para requisições
 - **Categorização**: Sistema de filtros por categoria
@@ -107,6 +121,7 @@ src/
 ### Persistência de Dados
 
 **AsyncStorage**: Escolhido por:
+
 - Simplicidade de implementação
 - Adequado para dados não-relacionais (favoritos, cache)
 - Performance satisfatória para o escopo do projeto
@@ -114,6 +129,7 @@ src/
 ### Tipagem
 
 **TypeScript**: Tipagem forte em todo o projeto:
+
 - Interfaces bem definidas para dados de notícias
 - Tipagem de navegação
 - Melhor experiência de desenvolvimento
@@ -121,6 +137,7 @@ src/
 ### Performance
 
 **Otimizações Implementadas**:
+
 - Cache de imagens
 - Lazy loading de componentes
 - Gerenciamento eficiente de memória
@@ -129,6 +146,7 @@ src/
 ### Acessibilidade
 
 **Práticas Implementadas**:
+
 - Labels descritivos em componentes
 - Navegação por teclado
 - Contraste adequado de cores
